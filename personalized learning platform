@@ -1,0 +1,61 @@
+package com.example.controller;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+import com.example.model.*;
+@RestController
+public class LearningPlatformApplication {
+    @Autowired
+    LearningPlatform learningPlatform;
+    @Autowired
+    Student student;
+    private Map<String, LearningPlatform> learningPlatforms;
+
+    public LearningPlatformApplication() {
+        learningPlatforms = new HashMap<>();
+    }
+
+    @PostMapping("/students/{name}/assess")
+    public String assessStudent(@PathVariable String name, @RequestParam String subject, @RequestParam int proficiency) {
+        LearningPlatform learningPlatform = learningPlatforms.getOrDefault(name, new LearningPlatform());
+        Student student = learningPlatform.getOrCreateStudent(name);
+        learningPlatform.assess(student, subject, proficiency);
+        learningPlatforms.put(name, learningPlatform);
+        return student.getName() + " has been assessed in " + subject + " with a proficiency level of " + proficiency;
+    }
+
+    @GetMapping("/students/{name}/weaknesses")
+    public String identifyWeaknesses(@PathVariable String name) {
+        LearningPlatform learningPlatform = learningPlatforms.get(name);
+        if (learningPlatform == null) {
+            return "No data available for student " + name;
+        }
+        Student student = learningPlatform.getStudent(name);
+        if (student == null) {
+            return "No data available for student " + name;
+        }
+        return learningPlatform.identifyWeaknesses(student);
+    }
+
+    @GetMapping("/students/{name}/resources")
+    public String provideLearningResources(@PathVariable String name, @RequestParam String subject) {
+        LearningPlatform learningPlatform = learningPlatforms.get(name);
+        if (learningPlatform == null) {
+            return "No data available for student " + name;
+        }
+        Student student = learningPlatform.getStudent(name);
+        if (student == null) {
+            return "No data available for student " + name;
+        }
+        return learningPlatform.provideLearningResources(student, subject);
+    }
+
+}
+
